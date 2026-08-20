@@ -49,12 +49,18 @@ export type StudentStatus =
   | 'stopped'
   | 'graduated'
 
+export type StudentType =
+  | 'Group'
+  | 'Private'
+  | 'Competitive'
+
 export type Student = {
   id: number
   name: string
   parentName: string
   phone: string
   location: string
+  studentType: StudentType
   day: string
   startTime: string
   endTime: string
@@ -126,6 +132,7 @@ type StudentDatabaseRow = {
   parent_name: string | null
   phone: string | null
   location: string
+  student_type: string
   day: string
   start_time: string
   end_time: string
@@ -761,6 +768,10 @@ function convertDatabaseStudent(
     location:
       row.location,
 
+    studentType:
+      row.student_type as
+        StudentType,
+
     day:
       row.day,
 
@@ -1075,6 +1086,7 @@ export function SwimCoachProvider({
             parent_name,
             phone,
             location,
+            student_type,
             day,
             start_time,
             end_time,
@@ -1379,6 +1391,9 @@ export function SwimCoachProvider({
             location:
               student.location,
 
+            student_type:
+              student.studentType,
+
             day:
               student.day,
 
@@ -1470,6 +1485,9 @@ export function SwimCoachProvider({
 
             location:
               student.location,
+
+            student_type:
+              student.studentType,
 
             day:
               student.day,

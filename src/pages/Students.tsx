@@ -16,6 +16,7 @@ import {
   type Split,
   type Student,
   type StudentStatus,
+  type StudentType,
 } from '../context/SwimCoachContext'
 
 type StudentForm = {
@@ -23,6 +24,7 @@ type StudentForm = {
   parentName: string
   phone: string
   location: string
+  studentType: StudentType
   day: string
   startTime: string
   endTime: string
@@ -66,6 +68,7 @@ const emptyForm: StudentForm = {
   parentName: '',
   phone: '',
   location: '',
+  studentType: 'Private',
   day: 'Monday',
   startTime: '',
   endTime: '',
@@ -468,6 +471,7 @@ function Students() {
               student.parentName,
               student.phone,
               student.location,
+              student.studentType,
               student.day,
               student.defaultCoach,
               formatStatusLabel(
@@ -781,6 +785,9 @@ function Students() {
 
         location:
           student.location,
+
+        studentType:
+          student.studentType,
 
         day:
           student.day,
@@ -1442,6 +1449,9 @@ function Students() {
             location:
               form.location.trim(),
 
+            studentType:
+              form.studentType,
+
             day:
               form.day,
 
@@ -1572,6 +1582,9 @@ function Students() {
 
             location:
               form.location.trim(),
+
+            studentType:
+              form.studentType,
 
             day:
               form.day,
@@ -1965,6 +1978,40 @@ function Students() {
                 }}
                 required
               />
+            </label>
+
+            <label className="form-field">
+              <span>
+                Student Type *
+              </span>
+
+              <select
+                value={
+                  form.studentType
+                }
+                onChange={(
+                  event,
+                ) =>
+                  setForm({
+                    ...form,
+
+                    studentType:
+                      event.target.value as StudentType,
+                  })
+                }
+              >
+                <option value="Group">
+                  Group
+                </option>
+
+                <option value="Private">
+                  Private
+                </option>
+
+                <option value="Competitive">
+                  Competitive
+                </option>
+              </select>
             </label>
 
             <label className="form-field">
@@ -2648,6 +2695,7 @@ function Students() {
                               )
                             }
                           </span>
+
                         </div>
 
                         <p>
@@ -3418,6 +3466,18 @@ function Students() {
                     formatStatusLabel(
                       selectedStudent.status,
                     )
+                  }
+                </strong>
+              </div>
+
+              <div className="details-item">
+                <span>
+                  Student Type
+                </span>
+
+                <strong>
+                  {
+                    selectedStudent.studentType
                   }
                 </strong>
               </div>
