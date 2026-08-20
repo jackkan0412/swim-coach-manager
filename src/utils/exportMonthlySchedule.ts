@@ -48,6 +48,12 @@ type ExportGroup = {
   rows: ExportLessonRow[]
 }
 
+type MonthlyHoursSummaryRow = {
+  monthLabel: string
+  place: string
+  hours: number
+}
+
 const WEEKDAYS = [
   'Monday',
   'Tuesday',
@@ -709,6 +715,722 @@ function buildGroups({
     )
 }
 
+function getLessonDurationHours(
+  startTime: string,
+  endTime: string,
+) {
+  const [
+    startHour,
+    startMinute,
+  ] =
+    startTime
+      .split(':')
+      .map(Number)
+
+  const [
+    endHour,
+    endMinute,
+  ] =
+    endTime
+      .split(':')
+      .map(Number)
+
+  const startTotalMinutes =
+    (
+      startHour *
+      60
+    ) +
+    startMinute
+
+  let endTotalMinutes =
+    (
+      endHour *
+      60
+    ) +
+    endMinute
+
+  if (
+    endTotalMinutes <=
+    startTotalMinutes
+  ) {
+    endTotalMinutes +=
+      24 *
+      60
+  }
+
+  return (
+    endTotalMinutes -
+    startTotalMinutes
+  ) / 60
+}
+
+function isSessionForCoach(
+  session: LessonSession,
+  currentCoach: CurrentCoach,
+) {
+  if (
+    !currentCoach
+  ) {
+    return false
+  }
+
+  return (
+    session.coach ===
+      currentCoach ||
+    session.coach ===
+      'Jack + Thomas'
+  )
+}
+
+function formatSummaryPrice(
+  amount: number,
+) {
+  if (
+    Number.isInteger(
+      amount,
+    )
+  ) {
+    return String(
+      amount,
+    )
+  }
+
+  return amount
+    .toFixed(
+      2,
+    )
+    .replace(
+      /\.?0+$/,
+      '',
+    )
+}
+
+function buildMonthlyHoursSummary({
+  monthKey,
+  monthLabel,
+  currentCoach,
+  students,
+  lessonSessions,
+}: {
+  monthKey: string
+  monthLabel: string
+  currentCoach: CurrentCoach
+  students: Student[]
+  lessonSessions: LessonSession[]
+}) {
+  const studentMap =
+    new Map(
+      students.map(
+        (student) => [
+          student.id,
+          student,
+        ],
+      ),
+    )
+
+  const grouped =
+    new Map<
+      string,
+      MonthlyHoursSummaryRow
+    >()
+
+  lessonSessions
+    .filter(
+      (session) =>
+        session.lessonDate.startsWith(
+          monthKey,
+        ) &&
+        session.status ===
+          'Present' &&
+        isSessionForCoach(
+          session,
+          currentCoach,
+        ),
+    )
+    .forEach(
+      (session) => {
+        const student =
+          studentMap.get(
+            session.studentId,
+          )
+
+        if (
+          !student
+        ) {
+          return
+        }
+
+        const location =
+          session.location.trim()
+
+        const price =
+          Number(
+            session.packagePrice,
+          )
+
+        const place =
+          `${location} (${student.studentType}) - RM${formatSummaryPrice(
+            price,
+          )}`
+
+        const key =
+          [
+            location
+              .toLowerCase(),
+            student.studentType,
+            price.toFixed(
+              2,
+            ),
+          ].join(
+            '|',
+          )
+
+        const hours =
+          getLessonDurationHours(
+            session.startTime,
+            session.endTime,
+          )
+
+        const existing =
+          grouped.get(
+            key,
+          )
+
+        if (
+          existing
+        ) {
+          existing.hours +=
+            hours
+
+          return
+        }
+
+        grouped.set(
+          key,
+          {
+            monthLabel,
+            place,
+            hours,
+          },
+        )
+      },
+    )
+
+  return Array.from(
+    grouped.values(),
+  ).sort(
+    (
+      a,
+      b,
+    ) =>
+      a.place.localeCompare(
+        b.place,
+      ),
+  )
+}
+
+function addMonthlyHoursSummary(
+  worksheet:
+    ExcelJS.Worksheet,
+  rows:
+    MonthlyHoursSummaryRow[],
+) {
+  const startColumn =
+    12
+
+  const dateColumn =
+    startColumn
+
+  const placeColumn =
+    startColumn +
+    1
+
+  const hoursColumn =
+    startColumn +
+    2
+
+  worksheet.getColumn(
+    10,
+  ).width =
+    12
+
+  worksheet.getColumn(
+    11,
+  ).width =
+    12
+
+  worksheet.getColumn(
+    dateColumn,
+  ).width =
+    20
+
+  worksheet.getColumn(
+    placeColumn,
+  ).width =
+    32
+
+  worksheet.getColumn(
+    hoursColumn,
+  ).width =
+    20
+
+  const headerRow =
+    worksheet.getRow(
+      1,
+    )
+
+  const headers = [
+    'DATE',
+    'PLACE',
+    'NUMBER OF HOURS',
+  ]
+
+  headers.forEach(
+    (
+      header,
+      index,
+    ) => {
+      const cell =
+        headerRow.getCell(
+          startColumn +
+          index,
+        )
+
+      cell.value =
+        header
+
+      cell.font = {
+        bold:
+          true,
+
+        color: {
+          argb:
+            'FFFFFFFF',
+        },
+
+        size:
+          10,
+      }
+
+      cell.fill = {
+        type:
+          'pattern',
+
+        pattern:
+          'solid',
+
+        fgColor: {
+          argb:
+            'FF2F5E9E',
+        },
+      }
+
+      cell.alignment = {
+        horizontal:
+          'center',
+
+        vertical:
+          'middle',
+
+        wrapText:
+          true,
+      }
+
+      cell.border = {
+        top: {
+          style:
+            'thin',
+
+          color: {
+            argb:
+              'FF000000',
+          },
+        },
+
+        left: {
+          style:
+            'thin',
+
+          color: {
+            argb:
+              'FF000000',
+          },
+        },
+
+        bottom: {
+          style:
+            'thin',
+
+          color: {
+            argb:
+              'FF000000',
+          },
+        },
+
+        right: {
+          style:
+            'thin',
+
+          color: {
+            argb:
+              'FF000000',
+          },
+        },
+      }
+    },
+  )
+
+  headerRow.height =
+    Math.max(
+      headerRow.height ??
+        15,
+      32,
+    )
+
+  rows.forEach(
+    (
+      summary,
+      index,
+    ) => {
+      const rowNumber =
+        index +
+        2
+
+      const row =
+        worksheet.getRow(
+          rowNumber,
+        )
+
+      row.height =
+        18
+
+      row.getCell(
+        dateColumn,
+      ).value =
+        summary.monthLabel
+
+      row.getCell(
+        placeColumn,
+      ).value =
+        summary.place
+
+      row.getCell(
+        hoursColumn,
+      ).value =
+        summary.hours
+
+      row.getCell(
+        hoursColumn,
+      ).numFmt =
+        '0'
+
+      for (
+        let column =
+          dateColumn;
+        column <=
+        hoursColumn;
+        column +=
+          1
+      ) {
+        const cell =
+          row.getCell(
+            column,
+          )
+
+        cell.alignment = {
+          horizontal:
+            column ===
+            placeColumn
+              ? 'left'
+              : 'center',
+
+          vertical:
+            'middle',
+
+          wrapText:
+            true,
+        }
+
+        if (
+          column ===
+          hoursColumn
+        ) {
+          cell.border = {
+            top: {
+              style:
+                'thin',
+
+              color: {
+                argb:
+                  'FF808080',
+              },
+            },
+
+            left: {
+              style:
+                'thin',
+
+              color: {
+                argb:
+                  'FF808080',
+              },
+            },
+
+            bottom: {
+              style:
+                'thin',
+
+              color: {
+                argb:
+                  'FF808080',
+              },
+            },
+
+            right: {
+              style:
+                'thin',
+
+              color: {
+                argb:
+                  'FF808080',
+              },
+            },
+          }
+        } else {
+          cell.border = {
+            left: {
+              style:
+                'thin',
+
+              color: {
+                argb:
+                  'FF808080',
+              },
+            },
+
+            right: {
+              style:
+                'thin',
+
+              color: {
+                argb:
+                  'FF808080',
+              },
+            },
+          }
+        }
+      }
+    },
+  )
+
+  if (
+    rows.length >
+    0
+  ) {
+    const lastDataRowNumber =
+      rows.length +
+      1
+
+    worksheet.getCell(
+      lastDataRowNumber,
+      dateColumn,
+    ).border = {
+      left: {
+        style:
+          'thin',
+
+        color: {
+          argb:
+            'FF808080',
+        },
+      },
+
+      right: {
+        style:
+          'thin',
+
+        color: {
+          argb:
+            'FF808080',
+        },
+      },
+
+      bottom: {
+        style:
+          'thin',
+
+        color: {
+          argb:
+            'FF808080',
+        },
+      },
+    }
+
+    worksheet.getCell(
+      lastDataRowNumber,
+      placeColumn,
+    ).border = {
+      left: {
+        style:
+          'thin',
+
+        color: {
+          argb:
+            'FF808080',
+        },
+      },
+
+      right: {
+        style:
+          'thin',
+
+        color: {
+          argb:
+            'FF808080',
+        },
+      },
+
+      bottom: {
+        style:
+          'thin',
+
+        color: {
+          argb:
+            'FF808080',
+        },
+      },
+    }
+
+    const totalRowNumber =
+      rows.length +
+      2
+
+    worksheet.mergeCells(
+      totalRowNumber,
+      dateColumn,
+      totalRowNumber,
+      placeColumn,
+    )
+
+    const totalRow =
+      worksheet.getRow(
+        totalRowNumber,
+      )
+
+    totalRow.height =
+      18
+
+    const totalLabelCell =
+      worksheet.getCell(
+        totalRowNumber,
+        dateColumn,
+      )
+
+    totalLabelCell.value =
+      'TOTAL HOURS'
+
+    totalLabelCell.font = {
+      bold:
+        true,
+    }
+
+    totalLabelCell.alignment = {
+      horizontal:
+        'right',
+
+      vertical:
+        'middle',
+    }
+
+    const totalCell =
+      worksheet.getCell(
+        totalRowNumber,
+        hoursColumn,
+      )
+
+    totalCell.value =
+      rows.reduce(
+        (
+          total,
+          item,
+        ) =>
+          total +
+          item.hours,
+        0,
+      )
+
+    totalCell.numFmt =
+      '0'
+
+    totalCell.font = {
+      bold:
+        true,
+    }
+
+    totalCell.alignment = {
+      horizontal:
+        'center',
+
+      vertical:
+        'middle',
+    }
+
+    for (
+      let column =
+        dateColumn;
+      column <=
+      hoursColumn;
+      column +=
+        1
+    ) {
+      worksheet.getCell(
+        totalRowNumber,
+        column,
+      ).border = {
+        top: {
+          style:
+            'thin',
+
+          color: {
+            argb:
+              'FF000000',
+          },
+        },
+
+        left: {
+          style:
+            'thin',
+
+          color: {
+            argb:
+              'FF000000',
+          },
+        },
+
+        bottom: {
+          style:
+            'thin',
+
+          color: {
+            argb:
+              'FF000000',
+          },
+        },
+
+        right: {
+          style:
+            'thin',
+
+          color: {
+            argb:
+              'FF000000',
+          },
+        },
+      }
+    }
+  }
+}
+
 function downloadWorkbook(
   buffer:
     ExcelJS.Buffer,
@@ -792,6 +1514,15 @@ export async function exportMonthlySchedule({
     getMonthLabel(
       monthKey,
     )
+
+  const monthlyHoursSummary =
+    buildMonthlyHoursSummary({
+      monthKey,
+      monthLabel,
+      currentCoach,
+      students,
+      lessonSessions,
+    })
 
   const worksheet =
     workbook.addWorksheet(
@@ -1243,7 +1974,7 @@ export async function exportMonthlySchedule({
                 )
 
               row.height =
-                24
+                15
 
               row.getCell(
                 3,
@@ -1329,9 +2060,6 @@ export async function exportMonthlySchedule({
                   column,
                 )
 
-              cell.border =
-                border
-
               cell.alignment = {
                 horizontal:
                   'center',
@@ -1342,6 +2070,78 @@ export async function exportMonthlySchedule({
                 wrapText:
                   true,
               }
+
+              /*
+                MAIN TABLE BODY BORDER STYLE
+
+                Match the reference sheet:
+                - compact row height
+                - no horizontal divider line between lesson rows
+                - keep vertical column borders
+                - only "Wages per class" (column 6)
+                  has a full box border on every lesson row
+                - first and last row still close the outer table
+              */
+
+              if (
+                column ===
+                6
+              ) {
+                cell.border =
+                  border
+              } else {
+                cell.border = {
+                  left: {
+                    style:
+                      'thin',
+
+                    color: {
+                      argb:
+                        'FF000000',
+                    },
+                  },
+
+                  right: {
+                    style:
+                      'thin',
+
+                    color: {
+                      argb:
+                        'FF000000',
+                    },
+                  },
+
+                  ...(currentRow ===
+                  startRow
+                    ? {
+                        top: {
+                          style:
+                            'thin' as const,
+
+                          color: {
+                            argb:
+                              'FF000000',
+                          },
+                        },
+                      }
+                    : {}),
+
+                  ...(currentRow ===
+                  endRow
+                    ? {
+                        bottom: {
+                          style:
+                            'thin' as const,
+
+                          color: {
+                            argb:
+                              'FF000000',
+                          },
+                        },
+                      }
+                    : {}),
+                }
+              }
             }
           }
 
@@ -1351,6 +2151,11 @@ export async function exportMonthlySchedule({
         },
       )
     },
+  )
+
+  addMonthlyHoursSummary(
+    worksheet,
+    monthlyHoursSummary,
   )
 
   const buffer =
