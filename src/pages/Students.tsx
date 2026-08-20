@@ -2652,7 +2652,7 @@ function Students() {
 
                         <p>
                           {
-                            student.parentName
+                            student.location
                           }
                         </p>
                       </div>
