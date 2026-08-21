@@ -6829,3 +6829,27 @@ a {
     min-width: 0;
   }
 }
+
+@media (max-width: 699px) {
+  .student-form .form-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 10px;
+    width: 100%;
+  }
+
+  .student-form .form-row > .form-field {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .student-form input[type="time"] {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    height: 48px;
+    padding: 0 8px;
+    font-size: 14px;
+  }
+}
