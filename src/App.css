@@ -6692,3 +6692,140 @@ a {
   opacity: 0.55;
   cursor: not-allowed;
 }
+
+@media (max-width: 699px) {
+  .modal-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .student-modal {
+    width: 100%;
+    max-width: 100%;
+    max-height: calc(
+      100dvh -
+      env(safe-area-inset-top)
+    );
+
+    padding:
+      18px
+      14px
+      0;
+
+    display: flex;
+    flex-direction: column;
+
+    overflow: hidden;
+
+    border-radius:
+      22px
+      22px
+      0
+      0;
+  }
+
+  .student-form {
+    min-height: 0;
+    flex: 1;
+
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    padding-bottom: 10px;
+
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /*
+    Keep the nice 2-column layout
+  */
+  .student-form .form-row {
+    display: grid;
+
+    grid-template-columns:
+      minmax(0, 1fr)
+      minmax(0, 1fr);
+
+    gap: 10px;
+  }
+
+  .form-field {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .form-field input,
+  .form-field select {
+    width: 100%;
+    min-width: 0;
+    height: 48px;
+
+    padding-left: 12px;
+    padding-right: 12px;
+
+    font-size: 16px;
+  }
+
+  /*
+    Prevent money inputs from pushing outside
+  */
+  .money-input {
+    width: 100%;
+    min-width: 0;
+    height: 48px;
+  }
+
+  .money-input > span {
+    flex: 0 0 52px;
+    padding: 0 10px;
+  }
+
+  .money-input input {
+    min-width: 0;
+    width: 100%;
+    flex: 1;
+  }
+
+  /*
+    Slightly smaller labels on phone
+  */
+  .form-field > span {
+    font-size: 12px;
+  }
+
+  /*
+    Bottom actions
+  */
+  .form-actions {
+    position: sticky;
+    bottom: 0;
+    z-index: 20;
+
+    margin:
+      6px
+      -14px
+      0;
+
+    padding:
+      12px
+      14px
+      calc(
+        12px +
+        env(safe-area-inset-bottom)
+      );
+
+    grid-template-columns:
+      minmax(0, 1fr)
+      minmax(0, 1fr);
+
+    background: #ffffff;
+
+    border-top:
+      1px solid
+      #e5e7eb;
+  }
+
+  .form-actions button {
+    min-width: 0;
+  }
+}
