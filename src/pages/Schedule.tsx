@@ -1,6 +1,5 @@
 import {
   useMemo,
-  useRef,
   useState,
 } from 'react'
 
@@ -166,8 +165,7 @@ function getWeekStart(
 }
 
 function getLessonTypeLabel(
-  lessonType:
-    LessonType,
+  lessonType: LessonType,
 ) {
   if (
     lessonType ===
@@ -225,34 +223,6 @@ function Schedule() {
         todayKey,
       ),
     )
-
-  const dateInputRef =
-    useRef<HTMLInputElement | null>(
-      null,
-    )
-
-  const openDatePicker =
-    () => {
-      const input =
-        dateInputRef.current
-
-      if (!input) {
-        return
-      }
-
-      try {
-        if (
-          typeof input.showPicker ===
-          'function'
-        ) {
-          input.showPicker()
-        } else {
-          input.click()
-        }
-      } catch {
-        input.click()
-      }
-    }
 
   const dateTabs =
     useMemo(
@@ -653,12 +623,9 @@ function Schedule() {
           </button>
 
           <div className="schedule-date-picker-wrapper">
-            <button
-              type="button"
+            <div
               className="schedule-date-picker"
-              onClick={
-                openDatePicker
-              }
+              aria-hidden="true"
             >
               <span>
                 Choose Date
@@ -671,12 +638,9 @@ function Schedule() {
                   )
                 }
               </strong>
-            </button>
+            </div>
 
             <input
-              ref={
-                dateInputRef
-              }
               className="schedule-date-native-input"
               type="date"
               value={
@@ -688,9 +652,6 @@ function Schedule() {
                 handleDatePicker(
                   event.target.value,
                 )
-              }
-              tabIndex={
-                -1
               }
               aria-label="Choose date"
             />

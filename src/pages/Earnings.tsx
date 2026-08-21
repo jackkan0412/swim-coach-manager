@@ -1,6 +1,5 @@
 import {
   useMemo,
-  useRef,
   useState,
 } from 'react'
 
@@ -106,32 +105,6 @@ function getLessonTypeLabel(
   return 'Regular'
 }
 
-/*
- * Coach displayed inside Earnings
- * should follow the FINAL earning split
- * saved for that lesson.
- */
-function getEarningCoach(
-  lesson:
-    LessonSession,
-) {
-  if (
-    lesson.earningSplit ===
-    'Jack 100%'
-  ) {
-    return 'Jack'
-  }
-
-  if (
-    lesson.earningSplit ===
-    'Thomas 100%'
-  ) {
-    return 'Thomas'
-  }
-
-  return 'Jack + Thomas'
-}
-
 function Earnings() {
   const {
     currentCoach,
@@ -226,36 +199,6 @@ function Earnings() {
         'true'
       )
     })
-
-  const monthInputRef =
-    useRef<HTMLInputElement | null>(
-      null,
-    )
-
-  const openMonthPicker =
-    () => {
-      const input =
-        monthInputRef.current
-
-      if (
-        !input
-      ) {
-        return
-      }
-
-      try {
-        if (
-          typeof input.showPicker ===
-          'function'
-        ) {
-          input.showPicker()
-        } else {
-          input.click()
-        }
-      } catch {
-        input.click()
-      }
-    }
 
   const togglePersonalEarning =
     () => {
@@ -624,12 +567,9 @@ function Earnings() {
 
         <div className="earnings-header-actions">
           <div className="earnings-month-picker-wrapper">
-            <button
+            <div
               className="earnings-month-picker"
-              type="button"
-              onClick={
-                openMonthPicker
-              }
+              aria-hidden="true"
             >
               <span className="earnings-month-picker-label">
                 Month
@@ -642,12 +582,9 @@ function Earnings() {
                   )
                 }
               </strong>
-            </button>
+            </div>
 
             <input
-              ref={
-                monthInputRef
-              }
               className="earnings-month-native-input"
               type="month"
               value={
@@ -664,9 +601,6 @@ function Earnings() {
                   null,
                 )
               }}
-              tabIndex={
-                -1
-              }
               aria-label="Select month"
             />
           </div>
@@ -1058,11 +992,6 @@ function Earnings() {
                               lesson,
                             )
 
-                          const earningCoach =
-                            getEarningCoach(
-                              lesson,
-                            )
-
                           return (
                             <div
                               className="earning-history-detail-card"
@@ -1137,7 +1066,7 @@ function Earnings() {
 
                                     <strong>
                                       {
-                                        earningCoach
+                                        lesson.coach
                                       }
                                     </strong>
                                   </div>
@@ -1150,7 +1079,7 @@ function Earnings() {
 
                                   <strong>
                                     {
-                                      earningCoach
+                                      lesson.coach
                                     }
                                   </strong>
                                 </div>
