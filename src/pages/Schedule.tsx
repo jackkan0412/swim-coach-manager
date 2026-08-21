@@ -33,10 +33,16 @@ function getDateKey(
     date.getFullYear(),
     String(
       date.getMonth() + 1,
-    ).padStart(2, '0'),
+    ).padStart(
+      2,
+      '0',
+    ),
     String(
       date.getDate(),
-    ).padStart(2, '0'),
+    ).padStart(
+      2,
+      '0',
+    ),
   ].join('-')
 }
 
@@ -119,21 +125,6 @@ function getShortDateLabel(
     {
       day: 'numeric',
       month: 'short',
-    },
-  )
-}
-
-function getPickerDateLabel(
-  dateKey: string,
-) {
-  return new Date(
-    `${dateKey}T00:00:00`,
-  ).toLocaleDateString(
-    'en-US',
-    {
-      month: '2-digit',
-      day: '2-digit',
-      year: 'numeric',
     },
   )
 }
@@ -633,15 +624,25 @@ function Schedule() {
 
               <strong>
                 {
-                  getPickerDateLabel(
-                    selectedDate,
+                  new Date(
+                    `${selectedDate}T00:00:00`,
+                  ).toLocaleDateString(
+                    'en-US',
+                    {
+                      month:
+                        '2-digit',
+                      day:
+                        '2-digit',
+                      year:
+                        'numeric',
+                    },
                   )
                 }
               </strong>
             </div>
 
             <input
-              className="schedule-date-native-input"
+              className="schedule-date-native-overlay"
               type="date"
               value={
                 selectedDate

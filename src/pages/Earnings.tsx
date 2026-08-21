@@ -585,7 +585,7 @@ function Earnings() {
             </div>
 
             <input
-              className="earnings-month-native-input"
+              className="earnings-month-native-overlay"
               type="month"
               value={
                 selectedMonth
@@ -593,6 +593,12 @@ function Earnings() {
               onChange={(
                 event,
               ) => {
+                if (
+                  !event.target.value
+                ) {
+                  return
+                }
+
                 setSelectedMonth(
                   event.target.value,
                 )
